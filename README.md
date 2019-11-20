@@ -142,6 +142,9 @@ exten => 8000, n,Hangup()
 
 （4） https://sipp.readthedocs.io/en/v3.6.0/scenarios/actions.html#media-rtp-commands
 
+（5） https://linuxconfig.org/how-to-install-docker-on-ubuntu-18-04-bionic-beaver
+
+
 
 
 
