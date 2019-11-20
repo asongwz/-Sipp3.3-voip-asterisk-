@@ -90,7 +90,7 @@ sipp-3.3.tar.gz ： sipp源码
 
 在第二个窗口，sipp作为主叫客户端，输入命令：
 
-#./sipp -sf caller_with_auth.xml 192.168.215.31:4329 -i 192.168.215.35 -p 5066 -inf caller_for_tonghua.csv -m 50 -d 30000 -oocsn ooc_default -trace_err
+#./sipp -sf caller_with_auth.xml 192.168.215.31:5060 -i 192.168.215.35 -p 5066 -inf caller_for_tonghua.csv -m 50 -d 30000 -oocsn ooc_default -trace_err
 
 
 说明：
@@ -122,7 +122,7 @@ exten => 8000, n,Hangup()
 
 在第二个串口，sipp作为主叫客户端，输入命令：
 
-#./sipp -sf caller_with_auth.xml 192.168.215.31:4329 -i 192.168.215.35 -p 5066 -inf caller_for_confbridge.csv -m 50 -d 30000 -oocsn ooc_default -trace_err
+#./sipp -sf caller_with_auth.xml 192.168.215.31:5060 -i 192.168.215.35 -p 5066 -inf caller_for_confbridge.csv -m 50 -d 30000 -oocsn ooc_default -trace_err
 
 说明：
 -m 50 ：指定测试多少人参与，这里是50个，这里的数量不超过caller_for_tonghua.csv里面的配置数量，可以根据自己需要，指定不同的参与人数
