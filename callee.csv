@@ -1,0 +1,12 @@
+SEQUENTIAL,PRINTF=300,PRINTFMULTIPLE=1,PRINTFOFFSET=202,
+3%03d;3%03d;[authentication username=3%03d password=123456];3%03d
+# 10001~10120
+# PRINTF：用户个数
+# PRINTFMULTIPLE：步长
+# PRINTFOFFSET：基数（起始数据）
+#3102;;[authentication username=3102 password=123456]
+#3104;;[authentication username=3104 password=123456]
+#3106;;[authentication username=3106 password=123456]
+#3108;;[authentication username=3108 password=123456]
+#3110;;[authentication username=3110 password=123456]
+#3112;;[authentication username=3112 password=123456]

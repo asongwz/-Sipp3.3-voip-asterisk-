@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE scenario SYSTEM "sipp.dtd">
+
+<scenario name="caller_with_auth">
+<!--执行命令样例：sipp -sf caller_with_auth.xml 47.106.93.236:5060 -p 5066 -inf caller.csv -m 1 -d 10000 -oocsn ooc_default-->
+<!--发送INVITE消息，设定重传定时器为1000ms，同时启动定时器invite-->
+<send retrans="1000" start_rtd="invite">
+    <![CDATA[
+      INVITE sip:[field1]@[remote_ip] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      From: "[field0]" <sip:[field0]@[remote_ip]>;tag=[call_number]zhg8
+      To: "[field1]"<sip:[field1]@[remote_ip]>
+      Call-ID: [call_id]
+      CSeq: 1 INVITE
+      Contact: <sip:[field0]@[local_ip]:[local_port]>
+      User-Agent: SIPp client mode version [sipp_version]
+      Allow: INVITE,PRACK,ACK,UPDATE,CANCEL,BYE,OPTIONS,INFO,SUBSCRIBE,REFER,NOTIFY
+      Max-Forwards: 70
+      Content-Type: application/sdp
+      Content-Length: [len]
+
+      v=0
+      o=SIPp [pid][call_number] 8[pid][call_number]8 IN IP[local_ip_type] [local_ip]
+      s=SIPp Normal Call Test
+      t=0 0
+      m=audio [media_port] RTP/AVP 0 8
+      c=IN IP[media_ip_type] [media_ip]
+      a=rtpmap:0 PCMU/8000
+      a=rtpmap:8 PCMA/8000
+      a=ptime:20
+      a=sendrecv
+    ]]>
+     </send>
+
+<recv response="100" optional="true">
+</recv>
+
+<recv response="401" auth="true">
+</recv>
+
+<!--部分呼叫鉴权可能为407
+<recv response="401" auth="true">
+</recv>-->
+
+<send>
+    <![CDATA[
+      ACK sip:[field1]@[remote_ip]:[remote_port] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch-3]
+      From: "[field0]" <sip:[field0]@[remote_ip]>;tag=[call_number]zhg8
+      To: "[field1]"<sip:[field1]@[remote_ip]>[peer_tag_param]
+      Call-ID: [call_id]
+      CSeq: 1 ACK
+      Contact: <sip:[field0]@[local_ip]:[local_port]>
+      Max-Forwards: 70
+      Subject: normal call scenario by wangwei
+      user-agent: SIPp client mode version [sipp_version]
+      Content-Length: 0
+    ]]>
+  </send>
+
+<send retrans="1000" start_rtd="invite">
+    <![CDATA[
+        INVITE sip:[field1]@[remote_ip] SIP/2.0
+        Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+        From: "[field0]" <sip:[field0]@[remote_ip]>;tag=[call_number]zhg8
+        To: "[field1]"<sip:[field1]@[remote_ip]>
+        Call-ID: [call_id]
+        CSeq: 2 INVITE
+        [field2]
+        Contact: <sip:[field0]@[local_ip]:[local_port]>
+        User-Agent: SIPp client mode version [sipp_version]
+        Allow: INVITE,PRACK,ACK,UPDATE,CANCEL,BYE,OPTIONS,INFO,SUBSCRIBE,REFER,NOTIFY
+        Max-Forwards: 70
+        Content-Type: application/sdp
+        Content-Length: [len]
+
+        v=0
+        o=SIPp [pid][call_number] 8[pid][call_number]8 IN IP[local_ip_type] [local_ip]
+        s=SIPp Normal Call Test
+        t=0 0
+        m=audio [media_port] RTP/AVP 0 8
+        c=IN IP[media_ip_type] [media_ip]
+        a=rtpmap:0 PCMU/8000
+        a=rtpmap:8 PCMA/8000
+        a=sendrecv
+        a=ptime:20
+    ]]>
+</send>
+
+
+<!--1xx响应均为可选接收消息，且接收到临时响应后，即可停止invite定时器的计时-->
+<!--收到4xx/5xx错误响应后，直接进入呼叫失败-->
+<recv response="100" optional="true" rtd="invite">
+</recv>
+
+<recv response="183" optional="true" rtd="invite" next="normal">
+</recv>
+
+<recv response="403" optional="true" rtd="invite" next="err_ack">
+</recv>
+
+<recv response="480" optional="true" rtd="invite" next="err_ack">
+</recv>
+
+<recv response="486" optional="true" rtd="invite" next="err_ack">
+</recv>
+
+<recv response="500" optional="true" rtd="invite" next="err_ack">
+</recv>
+
+<recv response="503" optional="true" rtd="invite" next="err_ack">
+</recv>
+
+<recv response="180"  optional="true" rtd="invite" next="normal">
+</recv>
+
+<label id="normal"/>
+<recv response="200" rtd="invite">
+    <action>
+        <ereg regexp="m=audio ([0-9]*)"
+            search_in="msg"
+            check_it="true"
+            assign_to="junk,callee_media_port" />
+    </action>
+</recv>
+
+<nop hide="true">
+    
+</nop>
+
+<send>
+    <![CDATA[
+        ACK sip:[field1]@[remote_ip]:[remote_port] SIP/2.0
+        Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+        From: "[field0]" <sip:[field0]@[remote_ip]>;tag=[call_number]zhg8
+        To: "[field1]"<sip:[field1]@[remote_ip]>[peer_tag_param]
+        Call-ID: [call_id]
+        CSeq: 2 ACK
+        Contact: <sip:[field0]@[local_ip]:[local_port]>
+        Max-Forwards: 70
+        Subject: normal call scenario by wangwei
+        user-agent: SIPp client mode version [sipp_version]
+        Content-Length: 0
+    ]]>
+</send>
+
+<!--使用rtp_stream循环播放PCMA音频
+<nop hide="true">
+    <action>
+      <exec rtp_stream="pcap/g711a.pcap,-1,0"/>
+    </action>
+</nop>
+-->
+<!--使用rtp_stream循环播放PCMU音频
+<nop hide="true">
+    <action>
+      <exec rtp_stream="pcap/g711u.pcap,-1,0"/>
+    </action>
+</nop>
+-->
+
+<!--使用play_pcap单次播放PCMA音频-->
+
+<nop hide="true">
+    <action>
+        <exec play_pcap_audio="pcap/g711a.pcap"/> 
+    </action>
+</nop>
+
+<!--使用play_pcap单次播放PCMU音频
+<nop hide="true">
+    <action>
+        <exec play_pcap_audio="pcap/g711u.pcap"/> 
+    </action>
+</nop>
+-->
+
+<!--媒体流传输完毕后，暂停发送BYE结束呼叫，在执行命令中增加参数-d 指定暂停时间：如-d 10000暂停10秒-->
+<pause />
+
+<send start_rtd="bye">
+    <![CDATA[
+        BYE sip:[field1]@[remote_ip]:[remote_port] SIP/2.0
+        Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+        From: "[field0]" <sip:[field0]@[remote_ip]>;tag=[call_number]zhg8
+        To: "[field1]"<sip:[field1]@[remote_ip]>[peer_tag_param]
+        Call-ID: [call_id]
+        CSeq: 3 BYE
+        Max-Forwards: 70
+        Subject: normal call scenario by wangwei
+        Content-Length: 0
+    ]]>
+</send>
+
+<recv response="200" rtd="bye" next="END">
+</recv>
+
+<!--异常结束，复用err_ack流程-->
+<label id="err_ack"/>
+
+<send>
+    <![CDATA[
+        ACK sip:[field1]@[remote_ip]:[remote_port] SIP/2.0
+        [last_Via:]
+        From: "[field0]" <sip:[field0]@[remote_ip]>;tag=[call_number]zhg8
+        To: "[field1]"<sip:[field1]@[remote_ip]>[peer_tag_param]
+        [last_Call-ID:]
+        CSeq: 2 ACK
+        Max-Forwards: 70
+        Subject: normal call scenario by wangwei
+        user-agent: SIPp client mode version [sipp_version]
+        Content-Length: 0
+    ]]>
+</send>
+
+<!--正常结束-->
+<label id="END"/>
+<nop hide="true">
+</nop>
+
+<!--如果存在定义了但未被使用的变量，可以在下面语句的双引号中增加，避免运行时报错-->
+<Reference variables="junk,callee_media_port" />
+    
+<!--definition of the response time repartition table (unit is ms)   -->
+<ResponseTimeRepartition value="50, 200,1000,2000,4000,10000"/>
+
+<!--definition of the call length repartition table (unit is ms)     -->
+<CallLengthRepartition value="500, 1000, 10000"/>
+
+</scenario>
